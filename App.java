@@ -3,26 +3,15 @@ import java.util.Random;
 
 public class App
 {
-
-    //Integers related to depth
-    static int openingDepth = 0, normalDepth = 9;
-
-    //Integers related to playstyle
-    static int safe = 1, aggressive = 2, drawish = 0, adaptability = 0;
-    static int[] adaptabilityLevels = new int[2];
-
-    //Other Parameters
-    static boolean solid = true, dynamic = false;
-
     //Game Data
-    static char[][] squares = new char[5][5];
+    static char[][] squares = new char[4][4];
     static int k = 4;
-    static boolean gravity = true, autoSolve = false, gameCompleted = false, aiTurn = false;
+    static boolean gameCompleted = false, aiTurn = false;
     static char ai, opponent;
 
     //AI Calculations
     static boolean drew = false;
-    static int wins, losses, draws, tempWins, tempLosses, tempDraws;
+    static int tempWins, tempLosses, tempDraws;
 
     public static void main(String[] args)
     {
@@ -35,10 +24,6 @@ public class App
             {
                 squares[x][y] = '-';
             }
-        }
-        if(openingDepth == 0)
-        {
-            openingDepth = normalDepth;
         }
         
 
@@ -53,9 +38,8 @@ public class App
         {
             ai = 'x';
             opponent = 'o';
-            move = Choose(openingDepth);
+            move = Choose(16);
             System.out.println("Move: " + move[1] + " " + move[0]);
-            openingDepth -= 1;
             squares[move[0]][move[1]] = ai;
             round += 1;
 
@@ -74,14 +58,7 @@ public class App
             if(aiTurn)
             {
                 System.out.println();
-                if(openingDepth > normalDepth)
-                {
-                    move = Choose(openingDepth);
-                }
-                else
-                {
-                    move = Choose(normalDepth);
-                }
+                move = Choose(16);
 
                 System.out.println("Move: " + move[1] + " " + move[0]);
 
@@ -141,38 +118,12 @@ public class App
     {
         int[] candidate = {0, 0};
         int value = 0, tempValue, result;
-        wins = losses = draws = 0;
-        //Indicates order in which the playstyle parameters will be considered; 1 for safe, 2 for aggressive and 3 for drawish
-        int[] priority = new int[3];
-
-        for(int x = 0; x < priority.length; x++)
-        {
-            int y = 3 - x;
-
-            while(priority[x] == 0 && y > 0)
-            {
-                if(safe == y)
-                {
-                    priority[x] = 1;
-                }
-                else if(aggressive == y)
-                {
-                    priority[x] = 2;
-                }
-                else if(drawish == y)
-                {
-                    priority[x] = 3;
-                }
-                y--;
-            }
-        }
 
         for(int x = 0; x < squares.length; x++)
         {
             for(int y = 0; y < squares[0].length; y++)
             {
                 result = 2;
-                tempWins = tempLosses = tempDraws = 0;
                 if(x == 0 && y == 0)
                 {
                     candidate[0] = x;
@@ -194,50 +145,7 @@ public class App
                     board[x][y] = ai;
                     tempValue = Search(board, depth, opponent);
                     
-                    if(solid)
-                    {
-                        for(int z = 0; z < priority.length; z++)
-                        {
-                            if(result != 2)
-                            {
-                                if(priority[z] != 0)
-                                {
-                                    result = Compare(value, tempValue, priority[z]);
-                                }
-                            }
-                            else
-                            {
-                                z = priority.length + 2;
-                            }
-                        }
-                    }
-                    
-                    if(result == 2)
-                    {
-                        for(int z = 0; z < priority.length; z++)
-                        {
-
-                            if(result != 2)
-                            {
-                                switch(priority[z])
-                                {
-                                    case 1:
-                                        result = Compare(tempLosses, losses, 0);
-                                        break;
-                                    case 2:
-                                        result = Compare(wins, tempWins, 0);
-                                        break;
-                                    case 3:
-                                        result = Compare(draws, tempDraws, 0);
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                z = priority.length + 2;
-                            }
-                        }
-                    }
+                    result = Compare(value, tempValue);
                     
                     if(result == 2)
                     {
@@ -260,75 +168,16 @@ public class App
     }
 
     //Compares two values
-    static int Compare(int value1, int value2, int solidMode)
+    static int Compare(int value1, int value2)
     {
         int toReturn = 2;
-        
-        //Solid safe parameter
-        if(solidMode == 1)
+        if(value1 > value2)
         {
-            if(value1 < 0 && value2 < 0)
-            {
-                if(value1 > value2)
-                {
-                    toReturn = 0;
-                }
-                else if(value2 > value1)
-                {
-                    toReturn = 1;
-                }
-            }
-            else if(value1 > 0 && value2 < 0)
-            {
-                toReturn = 0;
-            }
-            else if(value2 > 0 && value1 < 0)
-            {
-                toReturn = 1;
-            }
+            toReturn = 0;
         }
-        else if(solidMode == 2) //Solid aggressive parameter
+        else if(value2 > value1)
         {
-            if(value1 > value2)
-            {
-                toReturn = 0;
-            }
-            else if(value2 > value1)
-            {
-                toReturn = 1;
-            }
-        }
-        else if(solidMode == 3) //Solid drawish parameter
-        {
-            if(value1 < 0)
-            {
-                value1 *= -1;
-            }
-            if(value2 < 0)
-            {
-                value2 *= -1;
-            }
-
-            if(value1 < value2)
-            {
-                toReturn = 0;
-            }
-
-            if(value2 < value1)
-            {
-                toReturn = 1;
-            }
-        }
-        else //No solid parameter
-        {
-            if(value1 > value2)
-            {
-                toReturn = 0;
-            }
-            else if(value2 > value1)
-            {
-                toReturn = 1;
-            }
+            toReturn = 1;
         }
 
         return toReturn;
@@ -390,21 +239,7 @@ public class App
     static boolean Available(char[][] board, int x, int y)
     {
         boolean availability = false;
-        if(gravity)
-        {
-            if(x == board.length - 1)
-            {
-                if(board[x][y] == '-')
-                {
-                    availability = true;
-                }
-            }
-            else if(board[x][y] == '-' && board[x + 1][y] != '-')
-            {
-                availability = true;
-            }
-        }
-        else if(board[x][y] == '-')
+        if(board[x][y] == '-')
         {
             availability = true;
         }
