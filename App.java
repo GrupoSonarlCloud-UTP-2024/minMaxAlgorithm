@@ -1,10 +1,11 @@
 import java.util.Scanner;
 import java.util.Random;
 
-public class App {
+public class App
+{
     // Game Data
-    static char[][] squares = new char[4][4];
-    static int k = 4, depth = 7;
+    static char[][] squares = new char[3][3];
+    static int k = 3, depth = 7;
     static boolean gameCompleted = false, aiTurn = false;
     static char ai, opponent;
 
@@ -33,12 +34,6 @@ public class App {
         if (choice == 0) {
             ai = 'x';
             opponent = 'o';
-            move = Choose(depth);
-            System.out.println("Move: " + move[1] + " " + move[0]);
-            squares[move[0]][move[1]] = ai;
-            round += 1;
-
-            printBoard();
         } else {
             ai = 'o';
             opponent = 'x';
@@ -101,7 +96,7 @@ public class App {
 
         for (int x = 0; x < squares.length; x++) {
             for (int y = 0; y < squares[0].length; y++) {
-                if (Available(squares, x, y)) {
+                if (isValidMove(x, y)) {
                     squares[x][y] = ai;
                     int value = Search(squares, depth - 1, false);
                     squares[x][y] = '-';
@@ -128,7 +123,7 @@ public class App {
             int maxEval = Integer.MIN_VALUE;
             for (int x = 0; x < board.length; x++) {
                 for (int y = 0; y < board[0].length; y++) {
-                    if (Available(board, x, y)) {
+                    if (isValidMove(x, y)) {
                         board[x][y] = ai;
                         int evalValue = Search(board, depth - 1, false);
                         board[x][y] = '-';
@@ -141,7 +136,7 @@ public class App {
             int minEval = Integer.MAX_VALUE;
             for (int x = 0; x < board.length; x++) {
                 for (int y = 0; y < board[0].length; y++) {
-                    if (Available(board, x, y)) {
+                    if (isValidMove(x, y)) {
                         board[x][y] = opponent;
                         int evalValue = Search(board, depth - 1, true);
                         board[x][y] = '-';
@@ -151,10 +146,6 @@ public class App {
             }
             return minEval;
         }
-    }
-
-    static boolean Available(char[][] board, int x, int y) {
-        return board[x][y] == '-';
     }
 
     static int Evaluation(char[][] board, int depth) {
